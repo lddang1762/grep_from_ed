@@ -1,6 +1,6 @@
 #include <signal.h>
 #include <setjmp.h>
-#include <grep.h>
+#include "grep.h"
 
 int main(int argc, char *argv[]) {
 	char *p1, *p2;
