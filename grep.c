@@ -181,11 +181,11 @@ void commands(void) {
 	char lastsep;
 
 	for (;;) {
-	if (pflag) {
-		pflag = 0;
-		addr1 = addr2 = dot;
-		print();
-	}
+	// if (pflag) {
+	// 	pflag = 0;
+	// 	addr1 = addr2 = dot;
+	// 	print();
+	// }
 	c = '\n';
 	for (addr1 = 0;;) {
 		lastsep = c;
@@ -204,8 +204,8 @@ void commands(void) {
 		if (c==';')
 			dot = a1;
 	}
-	if (lastsep!='\n' && a1==0)
-		a1 = dol;
+	// if (lastsep!='\n' && a1==0)
+	// 	a1 = dol;
 	if ((addr2=a1)==0) {
 		given = 0;
 		addr2 = dot;
@@ -223,22 +223,22 @@ void commands(void) {
 		continue;
 
   //IMPORTANT
-	case 'n':
-		listn++;
-		newline();
-		print();
-		continue;
+	// case 'n':
+	// 	listn++;
+	// 	newline();
+	// 	print();
+	// 	continue;
 
-	case '\n':
-		if (a1==0) {
-			a1 = dot+1;
-			addr2 = a1;
-			addr1 = a1;
-		}
-		if (lastsep==';')
-			addr1 = a1;
-		print();
-		continue;
+	// case '\n':
+	// 	if (a1==0) {
+	// 		a1 = dot+1;
+	// 		addr2 = a1;
+	// 		addr1 = a1;
+	// 	}
+	// 	if (lastsep==';')
+	// 		addr1 = a1;
+	// 	print();
+	// 	continue;
 
 	case 'l':
 		listf++;
@@ -248,40 +248,37 @@ void commands(void) {
 		print();
 		continue;
 
-	case 'Q':
-		fchange = 0;
-	case 'q':
-	//	setnoaddr();
-		newline();
-		quit(0);
+	// case 'Q':
+	// 	fchange = 0;
+	// case 'q':
+	// //	setnoaddr();
+	// 	newline();
+	// 	quit(0);
 
 	//IMPORTANT!!!
 	case 'r':
 		filename(c);
 	caseread:
 		if ((io = open(file, 0)) < 0) {
-			lastc = '\n';
-			error(file);
+			// lastc = '\n';
+			// error(file);
 		}
-		setwide();
-		squeeze(0);
+	//	setwide();
+		//squeeze(0);
 		ninbuf = 0;
 		c = zero != dol;
 		append(getfile, addr2);
-		exfile();
+		//exfile();
 		fchange = c;
 		continue;
 
-//IMPORTANT!!!!
-	case 'v':
-		global(0);
-		continue;
-
-
+// //IMPORTANT!!!!
+// 	case 'v':
+// 		global(0);
+// 		continue;
 
 	case EOF:
 		return;
-
 	}
 	error(Q);
 	}
@@ -332,13 +329,13 @@ address(void) {
 			if (opcnt)
 				error(Q);
 			break;
-		case '\'':
-			c = getchr();
-			if (opcnt || c<'a' || 'z'<c)
-				error(Q);
-			a = zero;
-			do a++; while (a<=dol && names[c-'a']!=(*a&~01));
-			break;
+		// case '\'':
+		// 	c = getchr();
+		// 	if (opcnt || c<'a' || 'z'<c)
+		// 		error(Q);
+		// 	a = zero;
+		// 	do a++; while (a<=dol && names[c-'a']!=(*a&~01));
+		// 	break;
 		case '?':
 			sign = -sign;
 			/* fall through */
@@ -467,7 +464,7 @@ void filename(int comm) {
 	}
 }
 
-//need
+//prints out char count in file
 void exfile(void) {
 	close(io);
 	io = -1;
