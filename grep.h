@@ -15,6 +15,7 @@
 
 #define	CBRA	1
 #define	CCHR	2
+#define CCOM 3
 #define	CCL	6
 #define	NCCL	8
 #define	CDOL	10
@@ -64,7 +65,6 @@ int	nbra;
 unsigned nlall = 128;
 
 char	*malloc(int);
-
 char *getblock(unsigned int atl, int iof);
 char *getline(unsigned int tl);
 int advance(char *lp, char *ep);
@@ -87,12 +87,7 @@ void print(void);
 void putchr(int ac);
 void putd(void);
 int putline(void);
-void puts(char *sp);
+void puts(char *sp, int mfiles);
 void setwide(void);
-
-jmp_buf	savej;
-
-#define MAXSIZE 500
-char *pattern;
 
 #endif
