@@ -1,4 +1,3 @@
-//#include <stdio.h>
 #include <dirent.h>
 #include "grep.h"
 
@@ -41,23 +40,23 @@ int main(int argc, char *argv[]) {
 	//if listed multiple files: (grep hello hello.txt yes.txt)
 	if(argc > 3){
 		mfiles = 1;
-		puts("multiple files!\n", 0);
+		//put all filenames into file[]
+		for(int x = 2; x < argc; x++){
+			files[nfiles++] = *(argv + x - 2);
+			puts(files[nfiles - 1], 0);
+		}
+		puts("Multiple files!\n", 0);
 	}
+	//if single file: (grep hello hello.txt)
 	if(nfiles == 0){
 		files[0] = *argv;
 		nfiles = 1;
 	}
-	// p1 = *argv;
-	// p2 = savedfile;
-	// while ((*p2++ = *p1++))
-	// 	if (p2 >= &savedfile[sizeof(savedfile)])
-	// 		p2--;
-	// globp = "r";
 
-
+	//loop through all files
 	for(int i = 0; i < nfiles; i++){
-		//p1 = *argv;
 		p1 = files[i];
+		fname = p1;
 		p2 = savedfile;
 		while ((*p2++ = *p1++))
 			if (p2 >= &savedfile[sizeof(savedfile)])
@@ -68,15 +67,6 @@ int main(int argc, char *argv[]) {
 		//listn++;
 		commands();
 	}
-	//if there are multiple files
-	// do {
-	//	fname = next filename
-	// } while(mfiles);
-
-	// zero = (unsigned *)malloc(nlall*sizeof(unsigned));//need
-	// init();
-	// //listn++;
-	// commands();
 	return 0;
 }
 
@@ -626,10 +616,10 @@ int cclass(char *set, int c, int af) {
 }
 
 //need
-void puts(char *sp, int fname) {
+void puts(char *sp, int mflag) {
 	while (*sp)
 		putchr(*sp++);
-	if(!fname){
+	if(!mflag){
 		putchr('\n');
 	}
 	else{
