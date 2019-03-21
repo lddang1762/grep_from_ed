@@ -1,5 +1,6 @@
 #include <dirent.h>
 #include "grep.h"
+#include <string.h>
 
 typedef struct dirent dirent;
 DIR* dir;
@@ -7,9 +8,12 @@ dirent *in_file;
 
 int mfiles = 0;
 char* files[];
+char* init_pattern[1000];
 char* pattern;
+char* pstart;
 char* fname;
 int nfiles = 0;
+int p_index = 0;
 
 int main(int argc, char *argv[]) {
 
@@ -18,7 +22,10 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 	argv++;
-	pattern = *argv++;
+	strcpy(init_pattern, "g/");
+	pattern = strcat(init_pattern, *argv++);
+	pstart = pattern;
+	puts(pattern, 0);
 	fname = *argv;
 	dir = opendir(fname);
 
@@ -68,6 +75,29 @@ int main(int argc, char *argv[]) {
 		commands();
 	}
 	return 0;
+}
+
+int getchr(void) {
+	char c;
+	if ((lastc=peekc)) {
+		peekc = 0;
+		return(lastc);
+	}
+	if (globp) {
+		if ((lastc = *globp++) != 0)
+			return(lastc);
+		globp = 0;
+		return(EOF);
+	}
+	if (read(0, &c, 1) <= 0)
+	//if((c = *pattern++) == '\0')
+	{
+		//pattern = pstart;
+		return(lastc = EOF);
+	}
+	//putchr(*pattern++);
+	lastc = c&0177;
+	return(lastc);
 }
 
 void commands(void) {
@@ -243,24 +273,6 @@ void filename(int comm) {
 		while ((*p1++ = *p2++))
 			;
 	}
-}
-
-int getchr(void) {
-	char c;
-	if ((lastc=peekc)) {
-		peekc = 0;
-		return(lastc);
-	}
-	if (globp) {
-		if ((lastc = *globp++) != 0)
-			return(lastc);
-		globp = 0;
-		return(EOF);
-	}
-	if (read(0, &c, 1) <= 0)
-		return(lastc = EOF);
-	lastc = c&0177;
-	return(lastc);
 }
 
 int getfile(void) {
