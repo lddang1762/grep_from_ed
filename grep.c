@@ -20,6 +20,8 @@ int main(int argc, char *argv[]) {
 	pattern[i + 3] = 'p';
 	pattern[i + 4] = '\0';
 
+	p_length = strlen(pattern);
+	
 	//set up possible directory
 	argv++;
 	fname = *argv;
@@ -53,7 +55,6 @@ int main(int argc, char *argv[]) {
 		files[0] = *argv;
 		numfiles = 1;
 	}
-	p_length = strlen(pattern);
 
 	//loop through all files
 	for(int i = 0; i < numfiles; i++){
@@ -241,6 +242,7 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
           *ep++ = c;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { expbuf[0] = 0;  nbra = 0;  error(Q);; }
         } while ((c = getchr()) != ']');
         lastep[1] = cclcnt;  continue;
+			default: *ep++ = CCHR;  *ep++ = c;
     }
   }
 }
