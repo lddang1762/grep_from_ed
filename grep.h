@@ -1,21 +1,17 @@
 #ifndef grep_h
 #define grep_h
 
-/* make BLKSIZE and LBSIZE 512 for smaller machines */
 #include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
 
 #define	BLKSIZE	4096
-#define	NBLK	2047
 #define	FNSIZE	128
 #define	LBSIZE	4096
 #define	ESIZE	256
 #define	GBSIZE	256
 #define	NBRA	5
 #define	EOF	-1
-#define	KSIZE	9
-
 #define	CBRA	1
 #define	CCHR	2
 #define	CDOT	4
@@ -26,31 +22,18 @@
 #define	CKET	12
 #define	CBACK	14
 #define	CCIRC	15
-
 #define	STAR	01
-
-char	Q[]	= "";
-char	T[]	= "TMP";
 #define	READ	0
 #define	WRITE	1
 
-char	line[70];
-char	*linp	= line;
-int	peekc;
-int	lastc;
-char	savedfile[FNSIZE];
-char	file[FNSIZE];
-char	linebuf[LBSIZE];
-char	expbuf[ESIZE+4];
-int	given;
-unsigned int	*addr1, *addr2;
-unsigned int	*dot, *dol, *zero;
-char	genbuf[LBSIZE];
+char	Q[]	= "", T[]	= "TMP", line[70],	savedfile[FNSIZE], file[FNSIZE], linebuf[LBSIZE],	expbuf[ESIZE+4], genbuf[LBSIZE], obuff[BLKSIZE], *braslist[NBRA], *braelist[NBRA];
+char	*linp	= line,	*nextip, *globp, *tfname, *loc1, *loc2, *files[1000], *pattern, *fname;
+int	tline, p_length = 0, p_index = 0, mfiles = 0, numfiles = 0,	peekc, lastc,	given,	ninbuf,	io,	oflag, col, oblock	= -1, nbra, names[26], tfile	= -1;
+
 long	count;
-char	*nextip;
-int	ninbuf;
-int	io;
-int	pflag;
+unsigned int	*addr1, *addr2, *dot, *dol, *zero;
+unsigned nlall = 128;
+
 long	lseek(int, long, int);
 int	open(char *, int);
 int	creat(char *, int);
@@ -61,23 +44,6 @@ int	fork(void);
 int	execl(char *, ...);
 int	wait(int *);
 int	unlink(char *);
-
-int	oflag;
-int	listn;
-int	col;
-char	*globp;
-int	tline;
-char	*tfname;
-char	*loc1;
-char	*loc2;
-char	obuff[BLKSIZE];
-int	oblock	= -1;
-int	names[26];
-char	*braslist[NBRA];
-char	*braelist[NBRA];
-int	nbra;
-unsigned nlall = 128;
-int	tfile	= -1;
 
 int backref(int i, char *lp);
 char *getblock(unsigned int atl, int iof);
@@ -107,13 +73,4 @@ void setwide(void);
 typedef struct dirent dirent;
 DIR* dir;
 dirent *in_file;
-
-char* files[1000];
-char* pattern;
-char* fname;
-int p_length = 0;
-int p_index = 0;
-int mfiles = 0;
-int numfiles = 0;
-
 #endif
