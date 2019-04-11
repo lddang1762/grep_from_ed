@@ -45,7 +45,6 @@ int	execl(char *, ...);
 int	wait(int *);
 int	unlink(char *);
 
-int backref(int i, char *lp);
 char *getblock(unsigned int atl, int iof);
 char *getline(unsigned int tl);
 int advance(char *lp, char *ep);
@@ -53,9 +52,7 @@ int append(int (*f)(void), unsigned int *a);
 int cclass(char *set, int c, int af);
 void commands(void);
 void compile(int eof);
-void error(char *s);
 int execute(unsigned int *addr);
-void exfile(void);
 void filename(int comm);
 int close(int);
 int getchr(void);

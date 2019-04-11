@@ -93,7 +93,6 @@ int advance(char *lp, char *ep) {  char *curlp;  int i;
       case NCCL:  if (cclass(ep, *lp++, 0)) { ep += *ep;  continue; }  return(0);
       case CBRA:  braslist[*ep++] = lp;  continue;
       case CKET:  braelist[*ep++] = lp;  continue;
-      default: error(Q);
     }
   }
 }
@@ -105,7 +104,7 @@ int append(int (*f)(void), unsigned int *a) {
     if ((dol-zero)+1 >= nlall) {
 			unsigned *ozero = zero;
 			nlall += 1024;
-      if ((zero = (unsigned *)realloc((char *)zero, nlall*sizeof(unsigned)))==NULL) {  error("MEM?");   }
+      if ((zero = (unsigned *)realloc((char *)zero, nlall*sizeof(unsigned)))==NULL) { }
       dot += zero - ozero;
 			dol += zero - ozero;
     }
@@ -159,59 +158,49 @@ void commands(void) {
 			setwide();
 			ninbuf = 0;
 			append(getfile, addr2);
-			exfile();
+			close(io);
+			io = -1;
 			continue;
 		case EOF:	return;
 		}
-		error(Q);
 	}
 }
 void compile(int eof) {
 	int c, cclcnt;
 	char *ep = expbuf, *lastep, bracket[NBRA], *bracketp = bracket;
   if ((c = getchr()) == '\n') { peekc = c;  c = eof; }
-  if (c == eof) {  if (*ep==0) { error(Q); }  return; }
+  if (c == eof) {  return; }
   nbra = 0;  if (c=='^') { c = getchr();  *ep++ = CCIRC; }  peekc = c;  lastep = 0;
   for (;;) {
-    if (ep >= &expbuf[ESIZE]) { expbuf[0] = 0,  nbra = 0;  error(Q);; }  c = getchr();
+    if (ep >= &expbuf[ESIZE]) { expbuf[0] = 0,  nbra = 0;  }  c = getchr();
 		if (c == '\n') { peekc = c;  c = eof; }
-    if (c==eof) { if (bracketp != bracket) { expbuf[0] = 0,  nbra = 0;  error(Q);; }  *ep++ = CEOF;  return;  }
+    if (c==eof) { if (bracketp != bracket) { expbuf[0] = 0,  nbra = 0;  }  *ep++ = CEOF;  return;  }
     if (c!='*') { lastep = ep; }
     switch (c) {
       case '\\':
         if ((c = getchr())=='(') {
-          if (nbra >= NBRA) { expbuf[0] = 0;  nbra = 0;  error(Q);; }  *bracketp++ = nbra;  *ep++ = CBRA;  *ep++ = nbra++;  continue;
+          if (nbra >= NBRA) { expbuf[0] = 0;  nbra = 0; }  *bracketp++ = nbra;  *ep++ = CBRA;  *ep++ = nbra++;  continue;
         }
-        if (c == ')') {  if (bracketp <= bracket) { expbuf[0] = 0;  nbra = 0;  error(Q);; }  *ep++ = CKET;  *ep++ = *--bracketp;  continue; }
+        if (c == ')') {  if (bracketp <= bracket) { expbuf[0] = 0;  nbra = 0;  }  *ep++ = CKET;  *ep++ = *--bracketp;  continue; }
         if (c>='1' && c<'1'+NBRA) { *ep++ = CBACK;  *ep++ = c-'1';  continue; }
-        *ep++ = CCHR;  if (c=='\n') { expbuf[0] = 0;  nbra = 0;  error(Q);; }  *ep++ = c;  continue;
+        *ep++ = CCHR;  if (c=='\n') { expbuf[0] = 0;  nbra = 0; }  *ep++ = c;  continue;
       case '.': *ep++ = CDOT;  continue;
-      case '\n':  expbuf[0] = 0;  nbra = 0;  error(Q);;
+      case '\n':  expbuf[0] = 0;  nbra = 0;
       case '*':  if (lastep==0 || *lastep==CBRA || *lastep==CKET) { *ep++ = CCHR;  *ep++ = c;; }  *lastep |= STAR; continue;
       case '$':  if ((peekc=getchr()) != eof && peekc!='\n') { *ep++ = CCHR;  *ep++ = c;; }  *ep++ = CDOL;  continue;
       case '[':  *ep++ = CCL;  *ep++ = 0;  cclcnt = 1;  if ((c=getchr()) == '^') {  c = getchr();  ep[-2] = NCCL; }
         do {
-          if (c=='\n') { expbuf[0] = 0;  nbra = 0;  error(Q);; }  if (c=='-' && ep[-1]!=0) {
+          if (c=='\n') { expbuf[0] = 0;  nbra = 0; }  if (c=='-' && ep[-1]!=0) {
             if ((c=getchr())==']') { *ep++ = '-';  cclcnt++;  break; }
-            while (ep[-1] < c) {  *ep = ep[-1] + 1;  ep++;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { expbuf[0] = 0;  nbra = 0;  error(Q);; } }
+            while (ep[-1] < c) {  *ep = ep[-1] + 1;  ep++;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { expbuf[0] = 0;  nbra = 0;} }
           }
           *ep++ = c;  cclcnt++;
-					if (ep >= &expbuf[ESIZE]) { expbuf[0] = 0,  nbra = 0;  error(Q);; }
+					if (ep >= &expbuf[ESIZE]) { expbuf[0] = 0,  nbra = 0; }
         } while ((c = getchr()) != ']');
         lastep[1] = cclcnt;  continue;
 			default: *ep++ = CCHR;  *ep++ = c;
     }
   }
-}
-void error(char *s) {
-	int c;
-	puts(s,0);
-  count = 0;
-	lseek(0, (long)0, 2);
-	if (globp) { lastc = '\n'; }
-	globp = 0, peekc = lastc;
-  if(lastc) { while ((c = getchr()) != '\n' && c != EOF) { } }
-  if (io > 0) { close(io);  io = -1; }
 }
 int execute(unsigned int *addr) {
 	char *p1, *p2;
@@ -223,21 +212,16 @@ int execute(unsigned int *addr) {
 	} while (*p1++);
 	return(0);
 }
-void exfile(void) {  close(io);  io = -1; }
 void filename(int comm) {
 	char *p1, *p2;  int c = getchr();  count = 0;
 	if (c == '\n' || c == EOF) {
     p1 = savedfile;
-    if (*p1 == 0 && comm != 'f') { error(Q); }
     p2 = file;
     while ((*p2++ = *p1++)) { }
     return;
   }
-  if (c!=' ') { error(Q); }
-  while ((c = getchr()) == ' ') { }  if (c=='\n') { error(Q); }  p1 = file;
-  do {
-    if (p1 >= &file[sizeof(file) - 1] || c == ' ' || c == EOF) { error(Q); }  *p1++ = c;
-  } while ((c = getchr()) != '\n');
+  while ((c = getchr()) == ' ') { }   p1 = file;
+  do {  *p1++ = c;  } while ((c = getchr()) != '\n');
   *p1++ = 0;
   if (savedfile[0] == 0||comm == 'e'||comm == 'f') { p1 = savedfile,  p2 = file;
     while ((*p1++ = *p2++)) { }
@@ -279,7 +263,6 @@ int getfile(void) {
 		if (c=='\0') continue;
 		if (c&0200 || lp >= &linebuf[LBSIZE]) {
 			lastc = '\n';
-			error(Q);
 		}
 		*lp++ = c;
 		count++;
@@ -300,16 +283,13 @@ void global(int k) {
 	char *gp, globuf[GBSIZE];
 	int c;
 	unsigned int *a1;
-	if (globp) {error(Q);}
 	setwide();
-	if ((c=getchr())=='\n') {error(Q);}
+	if ((c=getchr())=='\n') {}
 	compile(c);
 	gp = globuf;
 	while ((c = getchr()) != '\n' && p_index < p_length) {
-		if (c==EOF) {error(Q);}
 		if (c=='\\') { c = getchr(); if (c!='\n') {*gp++ = '\\';} }
 		*gp++ = c;
-		if (gp >= &globuf[GBSIZE-2]) {error(Q);}
 	}
 	if (gp == globuf) {*gp++ = 'p';}
 	*gp++ = '\n';
