@@ -19,17 +19,17 @@
 #define	CCIRC	15
 #define	STAR	01
 
-char	Q[]	= "", T[]	= "TMP", line[70],	savedfile[FNSIZE], file[FNSIZE], linebuf[LBSIZE],	expbuf[ESIZE+4], genbuf[LBSIZE], obuff[BLKSIZE], *braslist[NBRA], *braelist[NBRA];
-char	*linp	= line,	*nextip, *globp, *tfname, *loc1, *loc2, *files[1000], *pattern, *fname;
-int	tline, p_length = 0, p_index = 0, mfiles = 0, numfiles = 0,	peekc, lastc,	given,	ninbuf,	io,	oflag, col, oblock	= -1, nbra, names[26], tfile	= -1;
+static char	line[70],	savedfile[FNSIZE], file[FNSIZE], linebuf[LBSIZE],	expbuf[ESIZE+4], genbuf[LBSIZE], obuff[BLKSIZE], *braslist[NBRA], *braelist[NBRA];
+static char	*linp	= line,	*nextip, *globp, *loc2, *files[1000], *pattern, *fname;
+static int	tline, p_length = 0, p_index = 0, mfiles = 0, numfiles = 0,	peekc, lastc,	given,	ninbuf,	io,	oflag, oblock	= -1, nbra;
 
-long	count;
-unsigned int	*addr1, *addr2, *dot, *dol, *zero;
-unsigned nlall = 128;
+static long	count;
+static unsigned int	*addr1, *addr2, *dot, *dol, *zero;
+static unsigned nlall = 128;
 
 typedef struct dirent dirent;
-DIR* dir;
-dirent *in_file;
+static DIR* dir;
+static dirent *in_file;
 
 
 int main(int argc, char *argv[]) {
@@ -44,11 +44,11 @@ int main(int argc, char *argv[]) {
 	pattern = (char *) malloc(sizeof(char) * (strlen(*argv) + 5));
 	pattern[0] = 'g';
 	pattern[1] = '/';
-	for(j = 0; j < strlen(*argv); j++){	pattern[j + 2] = (*argv)[j]; }
+	for(j = 0; j < (int) strlen(*argv); j++){	pattern[j + 2] = (*argv)[j]; }
 	pattern[j + 2] = '/';
 	pattern[j + 3] = 'p';
 	pattern[j + 4] = '\0';
-	p_length = strlen(pattern);
+	p_length = (int) strlen(pattern);
 	//set up possible directory
 	argv++;
 	fname = *argv;
@@ -121,8 +121,8 @@ int advance(char *lp, char *ep) {
       case CEOF:  loc2 = lp;  return(1);
       case CCL:   if (cclass(ep, *lp++, 1)) {  ep += *ep;  continue; }  return(0);
       case NCCL:  if (cclass(ep, *lp++, 0)) { ep += *ep;  continue; }  return(0);
-      case CBRA:  braslist[*ep++] = lp;  continue;
-      case CKET:  braelist[*ep++] = lp;  continue;
+      case CBRA:  braslist[(int)*ep++] = lp;  continue;
+      case CKET:  braelist[(int)*ep++] = lp;  continue;
     }
   }
 }
@@ -142,7 +142,7 @@ int append(int (*f)(void), unsigned int *a) {
 		nline++;
 		a1 = ++dol; a2 = a1+1; rdot = ++dot;
     while (a1 > rdot) { *--a2 = *--a1; }
-		*rdot = tl;
+		*rdot = (unsigned) tl;
   }
   return(nline);
 }
@@ -161,7 +161,7 @@ void commands(void) {
 	for (;;) {
 	c = '\n';
 	for (addr1 = 0;;) {
-		lastsep = c;	a1 = address();	c = getchr();
+		lastsep = (char) c;	a1 = address();	c = getchr();
 		if (c!=',' && c!=';')	break;
 		if (a1==0) {
 			a1 = zero+1;
@@ -209,16 +209,16 @@ void compile(int eof) {
     switch (c) {
       case '\\':
         if ((c = getchr())=='(') {
-          if (nbra >= NBRA) { expbuf[0] = 0;  nbra = 0; }  *bracketp++ = nbra;  *ep++ = CBRA;  *ep++ = nbra++;  continue;
+          if (nbra >= NBRA) { expbuf[0] = 0;  nbra = 0; }  *bracketp++ = (char) nbra;  *ep++ = CBRA;  *ep++ = (char) nbra++;  continue;
         }
         if (c == ')') {  if (bracketp <= bracket) { expbuf[0] = 0;  nbra = 0;  }  *ep++ = CKET;  *ep++ = *--bracketp;  continue; }
-        if (c>='1' && c<'1'+NBRA) { *ep++ = CBACK;  *ep++ = c-'1';  continue; }
-        *ep++ = CCHR;  if (c=='\n') { expbuf[0] = 0;  nbra = 0; }  *ep++ = c;  continue;
+        if (c>='1' && c<'1'+NBRA) { *ep++ = CBACK;  *ep++ = (char) c-'1';  continue; }
+        *ep++ = CCHR;  if (c=='\n') { expbuf[0] = 0;  nbra = 0; }  *ep++ = (char) c;  continue;
       case '.': *ep++ = CDOT;  continue;
       case '\n':  expbuf[0] = 0;  nbra = 0;
-      case '*':  if (lastep==0 || *lastep==CBRA || *lastep==CKET) { *ep++ = CCHR;  *ep++ = c; }
+      case '*':  if (lastep==0 || *lastep==CBRA || *lastep==CKET) { *ep++ = CCHR;  *ep++ = (char) c; }
 				*lastep |= STAR; continue;
-      case '$':  if ((peekc=getchr()) != eof && peekc!='\n') { *ep++ = CCHR;  *ep++ = c; }  *ep++ = CDOL;  continue;
+      case '$':  if ((peekc=getchr()) != eof && peekc!='\n') { *ep++ = CCHR;  *ep++ = (char) c; }  *ep++ = CDOL;  continue;
       case '[':  *ep++ = CCL;  *ep++ = 0;  cclcnt = 1;
 				if ((c=getchr()) == '^') {  c = getchr();
 					 ep[-2] = NCCL; }
@@ -233,12 +233,12 @@ void compile(int eof) {
 								nbra = 0;}
 							}
           }
-          *ep++ = c;  cclcnt++;
+          *ep++ = (char) c;  cclcnt++;
 					if (ep >= &expbuf[ESIZE]) { expbuf[0] = 0;
 						  nbra = 0; }
         } while ((c = getchr()) != ']');
-        lastep[1] = cclcnt;  continue;
-			default: *ep++ = CCHR;  *ep++ = c;
+        lastep[1] = (char) cclcnt;  continue;
+			default: *ep++ = CCHR;  *ep++ = (char) c;
     }
   }
 }
@@ -261,7 +261,7 @@ void filename(int comm) {
     return;
   }
   while ((c = getchr()) == ' ') { }   p1 = file;
-  do {  *p1++ = c;  } while ((c = getchr()) != '\n');
+  do {  *p1++ = (char) c;  } while ((c = getchr()) != '\n');
   *p1++ = 0;
   if (savedfile[0] == 0||comm == 'e'||comm == 'f') {
 		p1 = savedfile;
@@ -272,7 +272,7 @@ void filename(int comm) {
 char *getblock(unsigned int atl) {
 	int bno, off;
 	bno = (atl/(BLKSIZE/2));
-	off = (atl<<1) & (BLKSIZE-1) & ~03;
+	off = (int) (atl<<1) & (BLKSIZE-1) & ~03;
 	if (bno==oblock) return(obuff+off);
 	return(obuff+off);
 }
@@ -305,7 +305,7 @@ int getfile(void) {
 		if (c&0200 || lp >= &linebuf[LBSIZE]) {
 			lastc = '\n';
 		}
-		*lp++ = c;
+		*lp++ = (char) c;
 		count++;
 	} while (c != '\n');
 	*--lp = 0;
@@ -315,7 +315,7 @@ int getfile(void) {
 char *getline(unsigned int tl) {
 	char *bp = getblock(tl), *lp = linebuf;
 	int nl = 0;
-	tl &= ~((BLKSIZE/2)-1);
+	tl &= (unsigned) ~((BLKSIZE/2)-1);
 	while ((*lp++ = *bp++))
 		if (--nl == 0) { bp = getblock(tl+=(BLKSIZE/2)); }
 	return(linebuf);
@@ -330,18 +330,18 @@ void global(int k) {
 	gp = globuf;
 	while ((c = getchr()) != '\n' && p_index < p_length) {
 		if (c=='\\') { c = getchr(); if (c!='\n') {*gp++ = '\\';} }
-		*gp++ = c;
+		*gp++ = (char) c;
 	}
 	if (gp == globuf) {*gp++ = 'p';}
 	*gp++ = '\n';
 	*gp++ = 0;
 	for (a1=zero; a1<=dol; a1++) {
-		*a1 &= ~01;
+		*a1 &= (unsigned) ~01;
 		if (a1>=addr1 && a1<=addr2 && execute(a1)==k) {*a1 |= 01;}
 	}
 	for (a1=zero; a1<=dol; a1++) {
 		if (*a1 & 01) {
-			*a1 &= ~01;
+			*a1 &= (unsigned) ~01;
 			dot = a1;
 			globp = globuf;
 			commands();
@@ -365,10 +365,10 @@ void print(void) {
 	dot = addr2;
 }
 int putline(void) {
-	unsigned int tl = tline;
+	unsigned int tl = (unsigned) tline;
 	char *bp = getblock(tl), *lp = linebuf;
 	int nl;
-	tl &= ~((BLKSIZE/2)-1);
+	tl &= (unsigned) ~((BLKSIZE/2)-1);
 	while ((*bp = *lp++)) {	if (*bp++ == '\n') {	*--bp = 0;	break;	}}
 	nl = tline;
 	tline += (((lp-linebuf)+03)>>1)&077776;
@@ -386,10 +386,10 @@ void putchr(int ac) {
 	char *lp;
 	int c = ac;
 	lp = linp;
-	*lp++ = c;
+	*lp++ = (char) c;
 	if(c == '\n' || lp >= &line[64]) {
 		linp = line;
-		write(oflag?2:1, line, lp-line);
+		write(oflag?2:1, line, (int)(lp-line));
 		return;
 	}
 	linp = lp;
