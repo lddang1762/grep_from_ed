@@ -37,5 +37,4 @@ void putd(void);
 int putline(void);
 void puts(char *sp, int mfiles);
 void setwide(void);
-
 #endif

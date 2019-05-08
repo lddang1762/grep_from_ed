@@ -31,6 +31,7 @@ typedef struct dirent dirent;
 DIR* dir;
 dirent *in_file;
 
+
 int main(int argc, char *argv[]) {
 	char *p1, *p2;
 	if(argc <= 2){
